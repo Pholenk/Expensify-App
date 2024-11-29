@@ -32,6 +32,7 @@ import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
@@ -48,6 +49,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
@@ -191,6 +193,10 @@ function ReportActionItem({
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
+    const [isMenuActive, setIsMenuActive] = useState(false);
+    const isPrevMenuActive = usePrevious(isMenuActive);
+    const [isReportInputFocused, setIsReportInputFocused] = useState(false);
+    const keyboardState = useKeyboardState();
 
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -273,6 +279,28 @@ function ReportActionItem({
 
         focusComposerWithDelay(textInputRef.current)(true);
     }, [prevDraftMessage, draftMessage]);
+
+    useEffect(() => {
+        if (!keyboardState.isKeyboardShown) {
+            return;
+        }
+        setIsReportInputFocused(true);
+    }, [keyboardState.isKeyboardShown]);
+
+    useEffect(() => {
+        setIsMenuActive(isContextMenuActive || !!(isEmojiPickerActive ?? isPaymentMethodPopoverActive));
+    }, [isContextMenuActive, isEmojiPickerActive, isPaymentMethodPopoverActive]);
+
+    useEffect(() => {
+        if (!isPrevMenuActive && isMenuActive) {
+            ReportActionComposeFocusManager.composerRef.current?.blur();
+        }
+
+        if (isPrevMenuActive && !isMenuActive && isReportInputFocused) {
+            ReportActionComposeFocusManager.composerRef.current?.focus();
+            setIsReportInputFocused(ReportActionComposeFocusManager.composerRef.current?.isFocused() ?? true);
+        }
+    }, [isMenuActive, isPrevMenuActive, isReportInputFocused]);
 
     useEffect(() => {
         if (!Permissions.canUseLinkPreviews()) {
