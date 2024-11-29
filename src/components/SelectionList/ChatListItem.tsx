@@ -8,9 +8,13 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import ReportActionItem from '@pages/home/report/ReportActionItem';
 import ReportActionItemDate from '@pages/home/report/ReportActionItemDate';
 import ReportActionItemFragment from '@pages/home/report/ReportActionItemFragment';
 import CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
 
@@ -57,6 +61,14 @@ function ChatListItem<TItem extends ListItem>({
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: item?.reportID ?? '-1'}), [item.reportID]);
 
+    const {reportData, reportActions, reportAction} = useMemo(() => {
+        return {
+            reportData: ReportUtils.getReport(item?.reportID ?? ''),
+            reportActions: Object.values(ReportActionsUtils.getAllReportActions(item?.reportID ?? '')),
+            reportAction: ReportActionsUtils.getReportAction(item?.reportID ?? '', item?.reportActionID ?? ''),
+        };
+    }, [item]);
+
     return (
         <BaseListItem
             item={item}
@@ -77,53 +89,20 @@ function ChatListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
-            {(hovered) => (
-                <MentionReportContext.Provider value={mentionReportContextValue}>
-                    <ShowContextMenuContext.Provider value={contextValue}>
-                        <AttachmentContext.Provider value={attachmentContextValue}>
-                            <MultipleAvatars
-                                icons={icons}
-                                shouldShowTooltip={showTooltip}
-                                secondAvatarStyle={[
-                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                    hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                ]}
-                            />
-                            <View style={[styles.chatItemRight]}>
-                                <View style={[styles.chatItemMessageHeader]}>
-                                    <View style={[styles.flexShrink1, styles.mr1]}>
-                                        <TextWithTooltip
-                                            shouldShowTooltip={showTooltip}
-                                            text={reportActionItem.formattedFrom}
-                                            style={[
-                                                styles.chatItemMessageHeaderSender,
-                                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                                styles.sidebarLinkTextBold,
-                                                styles.pre,
-                                            ]}
-                                        />
-                                    </View>
-                                    <ReportActionItemDate created={reportActionItem.created ?? ''} />
-                                </View>
-                                <View style={styles.chatItemMessage}>
-                                    {reportActionItem.message.map((fragment, index) => (
-                                        <ReportActionItemFragment
-                                            // eslint-disable-next-line react/no-array-index-key
-                                            key={`actionFragment-${reportActionItem.reportActionID}-${index}`}
-                                            fragment={fragment}
-                                            actionName={reportActionItem.actionName}
-                                            source=""
-                                            accountID={from.accountID}
-                                            isFragmentContainingDisplayName={index === 0}
-                                        />
-                                    ))}
-                                </View>
-                            </View>
-                        </AttachmentContext.Provider>
-                    </ShowContextMenuContext.Provider>
-                </MentionReportContext.Provider>
-            )}
+            <View style={styles.chatListWrapper}>
+                <ReportActionItem
+                    onPress={() => onSelectRow(item)}
+                    report={reportData}
+                    reportActions={reportActions}
+                    parentReportAction={undefined}
+                    action={reportAction as ReportAction}
+                    displayAsGroup={false}
+                    isMostRecentIOUReportAction={false}
+                    shouldDisplayNewMarker={false}
+                    index={0}
+                    isFirstVisibleReportAction={false}
+                />
+            </View>
         </BaseListItem>
     );
 }

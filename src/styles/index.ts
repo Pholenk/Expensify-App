@@ -4747,6 +4747,10 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.optionRowHeight,
         },
 
+        chatListWrapper: {
+            flex: 1,
+        },
+
         searchQueryListItemStyle: {
             alignItems: 'center',
             flexDirection: 'row',
