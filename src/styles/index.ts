@@ -4070,7 +4070,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         datePickerRoot: {
-            position: 'relative',
+            width: '100%',
             zIndex: 99,
         },
 
@@ -4078,8 +4078,16 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
             width: '100%',
             alignSelf: 'center',
-            zIndex: 100,
+            zIndex: 99,
             marginTop: 8,
+        },
+
+        datePickerPopoverShow: {
+            display: 'flex',
+        },
+
+        datePickerPopoverHide: {
+            display: 'none',
         },
 
         loginHeroHeader: {
