@@ -102,7 +102,7 @@ platform :android do
     lane :build_local_hybrid do
       ENV["ENVFILE"]=".env.production"
       gradle(
-        project_dir: '../Android',
+        project_dir: './android',
         task: 'assemble',
         flavor: 'Production',
         build_type: 'Release',

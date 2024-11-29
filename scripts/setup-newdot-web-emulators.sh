@@ -59,7 +59,7 @@ setup_android_path_1()
     exit 1
   }
   sleep 2
-  adb remount
+  adb shell mount -o rw,remount /
   adb push /etc/hosts /system/etc/hosts
   kill_all_emulators_android
 }
